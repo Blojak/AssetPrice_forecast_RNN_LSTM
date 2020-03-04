@@ -294,8 +294,6 @@ resid_I1 = predictions - y_test
 # the residuals? If yes, a K-fold cross-validation may be biased
 nlags = 10
 ljb_test_I1 = sm.stats.acorr_ljungbox(resid_I1, nlags)
-# ljb_test_data = sm.stats.acorr_ljungbox(dataset, nlags)
-
 
 # 1. lb_stat
 # 2. p_value
@@ -362,12 +360,7 @@ plt.show()
 BH_quote = df
 # Create a new dataframe
 df_new = BH_quote.filter(['Close'])
-# Get the last 60 day closing values and convert the dataframe to an array
-# last_60_day = df_new [-ac:].values
 
-'''
-Compute first differences with numpy
-'''
 last_60_day_diff = df_new.Close.diff()
 last_60_day_diff = last_60_day_diff[-ac:] 
 last_60_day_diff = np.array(last_60_day_diff)
