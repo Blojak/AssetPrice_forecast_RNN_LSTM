@@ -234,15 +234,6 @@ model.compile(optimizer = 'adam', loss='mean_squared_error')
 # metrics = ['rmse']
 
 '''
-Note: To evaluate the accuracy one could of course use metrics = ['acc'].
-This, however, returns the accuracy score 0.0000.
-Why? The reason ist simply, the algorithm wasn't able to explain the data floats
-100%. It is simply the wrong measure. The accuracy measure is rather applictable
-for categorial data, to measure the accuracy of classifications. 
-Here, instead, we'll use the root mean squared error (rmse) which is a customized
-metric.
-
-
 # =============================================================================
 # Evaluate
 # =============================================================================
