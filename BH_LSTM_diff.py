@@ -6,9 +6,15 @@ Created on Thu Feb 27 12:28:08 2020
 """
 
 '''
+This is one of my projects which aims to forecast asset prices using deep 
+learning RNN.
+The primary goal of this project is to collect experiences in applying NNs
+to forecast time series
+
+
 Description: This program uses an artificial recurrent neural network
 called "Long Short Term Memory" (LSTM) to predict the closing stock price
-of corporation Apple using the past 60 day stock price
+of Berkshire Hathaway using the past 60 day stock price
 '''
 
 # Import libraries
@@ -19,24 +25,16 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
-from keras import metrics
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
-import matplotlib.dates as mdates
-from keras.models import model_from_json # Import to save the results
-import json
-from keras.models import load_model
 
 
-# Get the stock quote
-# df = web.DataReader('AAPL', data_source='yahoo', start= '2012-01-01',
-#                     end = '2019-12-17')
 
 # =============================================================================
-# Load Data from Yahoo (B-Share)
+# Load Data from Yahoo (B-Share Berkshire Hathaway)
 # =============================================================================
 df = web.DataReader('BRK-B', data_source='yahoo', start= '2012-01-01',
-                    end = '2020-02-26')
+                    end = '2020-03-02')
 
 # =============================================================================
 # Plot Time Series (Close Price)
@@ -58,7 +56,7 @@ plt.show()
 # =============================================================================
 # Pre-Processing
 # =============================================================================
-# Create new dataframe just with the close data
+# Create new dataframe with the close price
 
 data = df.filter(['Close'])
 # # equivalent to 
@@ -67,22 +65,16 @@ data = df.filter(['Close'])
 # Convert the dataframe to a numpy array
 dataset = data.values
 
-
-# import statsmodels.formula.api as smf            # statistics and econometrics
-# import statsmodels.tsa.api as smt
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 
 sm.graphics.tsa.plot_acf(dataset, lags=70)
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-# plt.draw()
 plt.savefig('ACF.png')
 plt.tight_layout()
 plt.show()
 
-
-# fig, ax = plt.subplots()
 sm.graphics.tsa.plot_pacf(dataset, lags=30)
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
@@ -134,15 +126,6 @@ print('Critical Values:')
 for key, value in Adickfuller_i1[4].items():
 	print('\t%s: %.3f' % (key, value))
 
-
-
-
-'''
-Split into training and test/validation sets
-This is also do-able with sklearn, check it out
-'''
-
-
 dataset_diff = dataset_diff.reshape(-1,1)
 
 
@@ -155,17 +138,10 @@ training_data_len = math.ceil(len(dataset_diff)*.8)
 scaler = MinMaxScaler(feature_range = (0,1)) 
 scaled_data = scaler.fit_transform(dataset_diff)
 
-# Check standardized data
-# fig, ax = plt.subplots()
-# ax.hist(scaled_data)
-# ax.set_ylabel('Close Price USD ($)', fontsize = 18)
-# plt.show()
 '''
 - Create the training data set
 - Create the scaled training data set
 '''
-
-
 
 train_data = scaled_data[0:training_data_len, :]
 x_train = []
@@ -204,23 +180,14 @@ The three dimensions of this input are:
 This means that the input layer expects a 3D numpy array of data when fitting the 
 model and when making predictions, even if specific dimensions of the array 
 contain a single value, e.g. one sample or one feature.
-
-In our example: 
-    - 1580 
-    - 60 time steps
-    - predict 1 target --> the close price
 '''
 # The ...,1 is since we have just one close price
 # Built the LSTM model
 model = Sequential()
-# model.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1],1)))
 model.add(LSTM(50, activation = 'relu', return_sequences=True, input_shape=(x_train.shape[1],1)))
-
 model.add(LSTM(50, return_sequences = False))
 
 model.add(Dropout(0.5)) # [0.2,0.5]
-# model.add(layers.Dropout(0.4)) # [0.2,0.5]
-
 
 model.add(Dense(25))
 model.add(Dense(1))
@@ -246,7 +213,7 @@ return_sequences=True: because we use further layers
 
 return_sequences = Flase: no LSTM layer follows in the model architecture
 
-verbose: {0,1,2} displys the progressing bar
+verbose: {0,1,2} displys the progressing bar (if at default = 1)
 
 # model.add(Dropout(0.5)): Buch, S.149 Dropout consists in randomly setting a fraction 
 rate of input units to 0 at each update during training time, which helps 
@@ -292,8 +259,8 @@ model.save('my_model.h5')
 
 # from keras.models import load_model
 
-# # # Returns a compiled model identical to the previous one
-# model = load_model('D:/Dropbox/Work/Python Scripts/MyProjects/Berkshire_LSTM/my_model.h5')
+# # Returns a compiled model identical to the previous one
+# model = load_model('YourDirectory')
 # =============================================================================
 # Validation
 # =============================================================================
@@ -326,8 +293,6 @@ what is the standard deviation of the residuals?
 The lower the values are, the better is the fit
 '''
 rmse = np.sqrt(np.mean(predictions - y_test)**2) # ca. 0.7
-# resid_I0 = predictions - y_test
-
 resid_I1 = predictions - y_test
 # plt.plot(resid_I1)
 
@@ -412,11 +377,9 @@ df_new = BH_quote.filter(['Close'])
 '''
 Compute first differences with numpy
 '''
-# last_60_day_diff = np.diff(np.squeeze(last_60_day))
 last_60_day_diff = df_new.Close.diff()
 last_60_day_diff = last_60_day_diff[-ac:] 
 last_60_day_diff = np.array(last_60_day_diff)
-# last_60_day_diff = np.squeeze(last_60_day_diff)
 last_60_day_diff= last_60_day_diff.reshape(-1,1)
 
 # Scale the data to be values between 0 and 1
@@ -453,8 +416,8 @@ pred_price_I0 = df_new.Close[-1] + pred_price_I1
 # Is that realistic? How good is the fit?
 # =============================================================================
 
-final_close = web.DataReader('BRK-B', data_source='yahoo', start= '2020-02-27',
-                    end = '2020-02-27')
+final_close = web.DataReader('BRK-B', data_source='yahoo', start= '2020-03-03',
+                    end = '2020-03-03')
 
 final_close = np.array(final_close['Close'])[0]
 
